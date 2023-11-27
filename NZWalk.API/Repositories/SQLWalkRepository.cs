@@ -14,7 +14,7 @@ namespace NZWalk.API.Repositories
 
         async Task<List<Walk>> IWalkRepository.GetAllAsync()
         {
-            return await dbContext.Walks.ToListAsync();
+            return await dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync();
         }
 
         async Task<Walk?> IWalkRepository.CreateAsync(Walk walk)
@@ -26,7 +26,7 @@ namespace NZWalk.API.Repositories
 
         async Task<Walk?> IWalkRepository.GetByIdAsync(Guid id)
         {
-            return await dbContext.Walks.FirstOrDefaultAsync(x => x.Id == id);
+            return await dbContext.Walks.Include("Difficulty").Include("Region").FirstOrDefaultAsync(x => x.Id == id);
         }
 
         async Task<Walk?> IWalkRepository.UpdateAsync(Guid id, Walk walk)
