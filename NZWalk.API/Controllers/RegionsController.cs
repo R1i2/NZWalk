@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NZWalk.API.Data;
 using NZWalk.API.Models.Domain;
 using NZWalk.API.Models.DTO;
+using NZWalk.API.Repositories;
 
 namespace NZWalk.API.Controllers
 {
@@ -12,9 +13,11 @@ namespace NZWalk.API.Controllers
     [ApiController]
     public class RegionsController : ControllerBase
     {
-        public NZWalksDBContext dBContext { get; set; }
-        public RegionsController(NZWalksDBContext dbContext) {
+        private readonly NZWalksDBContext dBContext;
+        private readonly IRegionRepository regionRepository;
+        public RegionsController(NZWalksDBContext dbContext, IRegionRepository regionRepository) {
             this.dBContext = dbContext;
+            this.regionRepository = regionRepository;
         }
 
         //GET: http//localhost:portnumber/api/regions
@@ -23,7 +26,8 @@ namespace NZWalk.API.Controllers
         {
             //Get data from database through data models
             //var regions = dBContext.Regions.ToList();
-            var regions = await dBContext.Regions.ToListAsync();
+            //var regions = await dBContext.Regions.ToListAsync();
+            var regions = await regionRepository.GetAllAsync();
             //Map the data models to dto
             var regionsDTO = new List<RegionDTO>();
             foreach(var region in regions)
@@ -49,8 +53,11 @@ namespace NZWalk.API.Controllers
             //var region = dbContext.REgions.FirstOrDefault(x=>x.Id == id);
 
             //Async
-            var region = await dBContext.Regions.FirstOrDefaultAsync(x => x.Id == id
-            );
+            //var region = await dBContext.Regions.FirstOrDefaultAsync(x => x.Id == id
+            //);
+
+            var region = await regionRepository.GetAsync(id);
+
             //Map/Convert data model to DTO
             if(region == null)
             {
@@ -85,8 +92,10 @@ namespace NZWalk.API.Controllers
             //dBContext.SaveChanges();
 
             //Async
-            await dBContext.Regions.AddAsync(regionDomailModel);
-            await dBContext.SaveChangesAsync();
+            //await dBContext.Regions.AddAsync(regionDomailModel);
+            //await dBContext.SaveChangesAsync();
+
+            await regionRepository.CreateAsync(regionDomailModel);
 
             var regionsDto = new RegionDTO
             {
@@ -108,21 +117,29 @@ namespace NZWalk.API.Controllers
             //var regionDomainModel = dBContext.Regions.FirstOrDefault(x => x.Id == id
             //);
 
-            //Async
-            var regionDomainModel = await dBContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
+            ////Async
+            //var regionDomainModel = await dBContext.Regions.FirstOrDefaultAsync(x => x.Id == id);
+            var regionDomainModel = new Region
+            {
+                Id = id,
+                Name = updateRegionRequestDTO.Name,
+                Code = updateRegionRequestDTO.Code,
+                RegionImageUrl = updateRegionRequestDTO.RegionImageUrl
+            };
+            regionDomainModel = await regionRepository.UpdateAsync(id, regionDomainModel);
             
             if(regionDomainModel!=null)
             {
                 //Map DTO to domain model
-                regionDomainModel.Name = updateRegionRequestDTO.Name;
-                regionDomainModel.Code = updateRegionRequestDTO.Code;
-                regionDomainModel.RegionImageUrl = updateRegionRequestDTO.RegionImageUrl;
+                //regionDomainModel.Name = updateRegionRequestDTO.Name;
+                //regionDomainModel.Code = updateRegionRequestDTO.Code;
+                //regionDomainModel.RegionImageUrl = updateRegionRequestDTO.RegionImageUrl;
 
                 //Save the changes in the database
                 //dBContext.SaveChanges();
 
                 //Async
-                await dBContext.SaveChangesAsync();
+                //await dBContext.SaveChangesAsync();
 
                 //Convert domain model to DTO
                 RegionDTO regionDTO = new RegionDTO
@@ -149,13 +166,15 @@ namespace NZWalk.API.Controllers
         {
             //Get the regionDomainModel using the id
             //var regionDomainModel = dBContext.Regions.FirstOrDefault (x => x.Id == id);
-            var regionDomainModel = await dBContext.Regions.FirstOrDefaultAsync(x=>x.Id == id);
+            //var regionDomainModel = await dBContext.Regions.FirstOrDefaultAsync(x=>x.Id == id);
+
+            var regionDomainModel = await regionRepository.DeleteAsync(id);
             if(regionDomainModel!=null) { 
-                dBContext.Regions.Remove(regionDomainModel);
+                //dBContext.Regions.Remove(regionDomainModel);
                 //dBContext.SaveChanges();
 
                 //ASync NOTE - Remove method of dbContext does not have a Async dual
-                await dBContext.SaveChangesAsync();
+                //await dBContext.SaveChangesAsync();
 
                 // Return DTO deleted item back
                 RegionDTO regionDTO = new RegionDTO
